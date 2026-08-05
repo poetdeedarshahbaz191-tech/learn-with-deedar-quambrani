@@ -49,6 +49,11 @@ nav a:hover{
 
 .hero-content{
     max-width:700px;
+    display:block;
+    opacity:1;
+    visibility:visible;
+    position:relative;
+    z-index:2;
 }
 
 .hero h1{
