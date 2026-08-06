@@ -196,3 +196,14 @@ nav a{
     border:none;
     cursor:pointer;
 }
+
+
+.hero-image{
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    object-fit:cover;
+    display:block;
+    margin:0 auto 20px;
+    border:5px solid white;
+}
