@@ -42,51 +42,109 @@
 
     <div class="book-card">
 
-        <h2>📚 Book Download</h2>
-
-        <p id="bookMessage">
-            You selected a book for download.
-        </p>
-
-
-        <h3>
-            🔒 Download After Payment
-        </h3>
+        <h2>📚 Book Purchase</h2>
 
         <p>
-            Please complete the payment before requesting
-            the downloadable copy.
+            You selected:
         </p>
+
+        <h3 id="bookName">
+            Loading book...
+        </h3>
 
 
         <div class="payment-box">
 
-            <h3>
-                Payment Information
-            </h3>
+            <h3>💳 JazzCash Payment</h3>
 
             <p>
-                Payment method will be added here.
+                <strong>Amount:</strong> Rs. 200
             </p>
 
             <p>
-                After payment, your payment will be verified
-                before the download is released.
+                <strong>JazzCash Number:</strong><br>
+                0307 3223367
+            </p>
+
+            <p>
+                <strong>Account Name:</strong><br>
+                Deedar Ali
+            </p>
+
+            <hr>
+
+            <p>
+                Send <strong>Rs. 200</strong> through
+                JazzCash to the number above.
+            </p>
+
+            <p>
+                After making the payment, keep your
+                transaction ID (TID) for verification.
             </p>
 
         </div>
 
 
-        <button class="btn"
-                type="button"
-                onclick="showPaymentMessage()">
+        <div class="payment-box">
 
-            💳 Continue to Payment
+            <h3>📝 Payment Confirmation</h3>
 
-        </button>
+            <p>
+                After completing your JazzCash payment,
+                enter your details below.
+            </p>
 
 
-        <br><br>
+            <form id="paymentForm">
+
+                <input
+                    type="text"
+                    id="studentName"
+                    placeholder="Your Name"
+                    required
+                    style="width:100%; padding:15px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px;"
+                >
+
+
+                <input
+                    type="tel"
+                    id="studentWhatsapp"
+                    placeholder="WhatsApp Number"
+                    required
+                    style="width:100%; padding:15px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px;"
+                >
+
+
+                <input
+                    type="text"
+                    id="transactionId"
+                    placeholder="JazzCash Transaction ID (TID)"
+                    required
+                    style="width:100%; padding:15px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px;"
+                >
+
+
+                <button
+                    type="submit"
+                    class="btn"
+                    style="border:none; cursor:pointer; margin-top:15px;">
+
+                    ✅ Submit Payment for Verification
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <p id="statusMessage"
+           style="font-weight:bold; margin-top:20px;">
+        </p>
+
+
+        <br>
 
 
         <a href="index.html#books"
@@ -108,23 +166,145 @@
         All Rights Reserved.
     </p>
 
+    <p>
+        Email: shahbazdeedar555@gmail.com
+    </p>
+
+    <p>
+        WhatsApp: +92 307 3223367
+    </p>
+
 </footer>
 
 
 <script>
 
-function showPaymentMessage() {
+const books = {
 
-    alert(
-        "Payment system is being prepared. " +
-        "After payment verification, the secure download " +
-        "will become available."
-    );
+    book1: {
+        name: "Simple Sentences — Book 1",
+        price: 200
+    },
+
+    book2: {
+        name: "English with Deedar — Book 2",
+        price: 200
+    },
+
+    book3: {
+        name: "English Patterns — Book 3",
+        price: 200
+    },
+
+    book4: {
+        name: "Baat — Different English Words for ڳالھ",
+        price: 200
+    }
+
+};
+
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const selectedBook =
+    params.get("book");
+
+const book =
+    books[selectedBook];
+
+
+if (book) {
+
+    document.getElementById("bookName").textContent =
+        book.name;
+
+} else {
+
+    document.getElementById("bookName").textContent =
+        "No book selected";
 
 }
+
+
+/* PAYMENT FORM */
+
+document.getElementById("paymentForm")
+.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+
+    if (!book) {
+
+        alert(
+            "Please select a book from the Books section."
+        );
+
+        return;
+
+    }
+
+
+    const name =
+        document.getElementById("studentName").value.trim();
+
+    const whatsapp =
+        document.getElementById("studentWhatsapp").value.trim();
+
+    const transactionId =
+        document.getElementById("transactionId").value.trim();
+
+
+    if (!name || !whatsapp || !transactionId) {
+
+        alert(
+            "Please complete all fields."
+        );
+
+        return;
+
+    }
+
+
+    const message =
+        "Payment Verification Request\n\n" +
+
+        "Student Name: " + name + "\n" +
+
+        "WhatsApp: " + whatsapp + "\n" +
+
+        "Book: " + book.name + "\n" +
+
+        "Amount: Rs. " + book.price + "\n" +
+
+        "JazzCash TID: " + transactionId;
+
+
+    const whatsappNumber =
+        "923073223367";
+
+
+    const whatsappURL =
+        "https://wa.me/" +
+        whatsappNumber +
+        "?text=" +
+        encodeURIComponent(message);
+
+
+    document.getElementById("statusMessage").textContent =
+        "Opening WhatsApp for payment verification...";
+
+
+    window.open(
+        whatsappURL,
+        "_blank"
+    );
+
+});
 
 </script>
 
 </body>
 
-</html>
+    </html>
