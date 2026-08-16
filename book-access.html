@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Book Access | Learn with Deedar Quambrani</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #222;
+        }
+
+        .loading {
+            color: #555;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .book {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f1f8ff;
+            border-radius: 12px;
+        }
+
+        .book button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .book button:hover {
+            background: #0056b3;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>📚 Learn with Deedar Quambrani</h1>
+
+        <div id="message"
+             class="loading">
+
+            🔄 Checking your book access...
+
+        </div>
+
+        <div id="bookArea"></div>
+
+    </div>
+
+
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+
+import {
+    getDatabase,
+    ref,
+    get
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyAJ6dcJZxYTnH3R3XWr3qdk6EDpfa7jphU",
+
+    authDomain:
+        "learn-with-deedar.firebaseapp.com",
+
+    databaseURL:
+        "https://learn-with-deedar-default-rtdb.firebaseio.com",
+
+    projectId:
+        "learn-with-deedar",
+
+    storageBucket:
+        "learn-with-deedar.firebasestorage.app",
+
+    messagingSenderId:
+        "93219928041",
+
+    appId:
+        "1:93219928041:web:5f3ea3d3b1055f760b3d78"
+
+};
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+
+const database =
+    getDatabase(app);
+
+
+
+const message =
+    document.getElementById("message");
+
+
+const bookArea =
+    document.getElementById("bookArea");
+
+
+
+/* =====================================================
+   GET PAYMENT ID FROM URL
+===================================================== */
+
+const urlParams =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const paymentId =
+    urlParams.get("payment");
+
+
+
+/* =====================================================
+   CHECK PAYMENT ID
+===================================================== */
+
+if (!paymentId) {
+
+    message.className = "error";
+
+    message.textContent =
+        "❌ Invalid book access link.";
+
+} else {
+
+    checkPayment();
+
+}
+
+
+
+/* =====================================================
+   CHECK PAYMENT
+===================================================== */
+
+async function checkPayment() {
+
+    try {
+
+        const paymentRef =
+            ref(
+                database,
+                "paymentRequests/" +
+                paymentId
+            );
+
+
+        const snapshot =
+            await get(paymentRef);
+
+
+        if (!snapshot.exists()) {
+
+            message.className = "error";
+
+            message.textContent =
+                "❌ Payment request not found.";
+
+            return;
+
+        }
+
+
+        const payment =
+            snapshot.val();
+
+
+
+        /* =============================================
+           CHECK APPROVAL
+        ============================================= */
+
+        if (
+            payment.status !== "approved" ||
+            payment.bookSent !== true
+        ) {
+
+            message.className = "error";
+
+            message.textContent =
+                "❌ Your payment has not been approved yet.";
+
+            return;
+
+        }
+
+
+
+        /* =============================================
+           CHECK BOOK ID
+        ============================================= */
+
+        if (!payment.bookId) {
+
+            message.className = "error";
+
+            message.textContent =
+                "❌ Book information is missing.";
+
+            return;
+
+        }
+
+
+
+        /* =============================================
+           SUCCESS
+        ============================================= */
+
+        message.className = "success";
+
+        message.textContent =
+            "✅ Payment verified successfully!";
+
+
+        showBook(payment);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        message.className = "error";
+
+        message.textContent =
+            "❌ Unable to verify your payment.";
+
+    }
+
+}
+
+
+
+/* =====================================================
+   SHOW BOOK
+===================================================== */
+
+function showBook(payment) {
+
+    const bookName =
+        payment.bookName ||
+        "Your Book";
+
+
+    /*
+       IMPORTANT:
+       Replace the PDF link below with your
+       actual secure book system later.
+    */
+
+    const bookUrl =
+        "books/" +
+        payment.bookId +
+        ".pdf";
+
+
+    bookArea.innerHTML = `
+
+        <div class="book">
+
+            <h2>
+                📖 ${escapeHTML(bookName)}
+            </h2>
+
+            <p>
+                Your payment has been verified.
+            </p>
+
+            <p>
+                You can access your purchased book below.
+            </p>
+
+            <button
+                onclick="openBook('${bookUrl}')">
+
+                📚 Open Book
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+
+/* =====================================================
+   OPEN BOOK
+===================================================== */
+
+window.openBook = function(url) {
+
+    window.open(
+        url,
+        "_blank"
+    );
+
+};
+
+
+
+/* =====================================================
+   BASIC HTML ESCAPING
+===================================================== */
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+}
+
+</script>
+
+</body>
+
+</html>
