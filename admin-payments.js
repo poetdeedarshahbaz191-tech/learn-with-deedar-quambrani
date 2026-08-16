@@ -1,4 +1,3 @@
-
 import {
     initializeApp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -44,7 +43,7 @@ const paymentsRef =
 
 
 // =====================================================
-// LOAD ALL PAYMENT REQUESTS
+// LOAD PAYMENT REQUESTS
 // =====================================================
 
 onValue(paymentsRef, (snapshot) => {
@@ -224,7 +223,7 @@ onValue(paymentsRef, (snapshot) => {
                 approveButton.className = "btn";
 
                 approveButton.textContent =
-                    "✅ Approve + Send Book";
+                    "✅ Approve Payment";
 
                 approveButton.style.marginRight =
                     "10px";
@@ -232,7 +231,7 @@ onValue(paymentsRef, (snapshot) => {
 
                 approveButton.addEventListener(
                     "click",
-                    () => approveAndSendBook(
+                    () => approvePayment(
                         id,
                         payment
                     )
@@ -265,13 +264,30 @@ onValue(paymentsRef, (snapshot) => {
 
 
             // =================================================
-            // APPROVED BUT NOT SENT
+            // APPROVED — BOOK NOT SENT
             // =================================================
 
             else if (
                 payment.status === "approved" &&
                 payment.bookSent !== true
             ) {
+
+                const verified =
+                    document.createElement("p");
+
+                verified.style.color =
+                    "green";
+
+                verified.style.fontWeight =
+                    "bold";
+
+                verified.textContent =
+                    "✅ Payment verified.";
+
+                card.appendChild(
+                    verified
+                );
+
 
                 const sendButton =
                     document.createElement("button");
@@ -280,9 +296,6 @@ onValue(paymentsRef, (snapshot) => {
 
                 sendButton.textContent =
                     "📚 Send Book";
-
-                sendButton.style.marginRight =
-                    "10px";
 
 
                 sendButton.addEventListener(
@@ -294,12 +307,14 @@ onValue(paymentsRef, (snapshot) => {
                 );
 
 
-                card.appendChild(sendButton);
+                card.appendChild(
+                    sendButton
+                );
             }
 
 
             // =================================================
-            // ALREADY SENT
+            // BOOK ALREADY SENT
             // =================================================
 
             else if (
@@ -319,7 +334,35 @@ onValue(paymentsRef, (snapshot) => {
                 sentMessage.textContent =
                     "📚 Book access has been sent.";
 
-                card.appendChild(sentMessage);
+                card.appendChild(
+                    sentMessage
+                );
+            }
+
+
+            // =================================================
+            // REJECTED
+            // =================================================
+
+            else if (
+                payment.status === "rejected"
+            ) {
+
+                const rejectedMessage =
+                    document.createElement("p");
+
+                rejectedMessage.style.color =
+                    "red";
+
+                rejectedMessage.style.fontWeight =
+                    "bold";
+
+                rejectedMessage.textContent =
+                    "❌ Payment rejected.";
+
+                card.appendChild(
+                    rejectedMessage
+                );
             }
 
 
@@ -331,26 +374,31 @@ onValue(paymentsRef, (snapshot) => {
 
 
 // =====================================================
-// APPROVE + SEND BOOK
+// APPROVE PAYMENT
 // =====================================================
 
-async function approveAndSendBook(
+async function approvePayment(
     paymentId,
     payment
 ) {
 
     const question =
         "Have you checked and received this payment?\n\n" +
+
         "Book: " +
         (payment.bookName || "Book") +
         "\n" +
+
         "Amount: Rs. " +
         (payment.amount || "") +
         "\n" +
+
         "JazzCash TID: " +
         (payment.transactionId || "") +
+
         "\n\n" +
-        "Approve and send the book?";
+
+        "Approve this payment?";
 
 
     if (!confirm(question)) {
@@ -359,10 +407,6 @@ async function approveAndSendBook(
 
 
     try {
-
-        // -----------------------------------------------
-        // First mark payment as approved
-        // -----------------------------------------------
 
         await update(
             ref(
@@ -383,26 +427,22 @@ async function approveAndSendBook(
         );
 
 
-        // -----------------------------------------------
-        // Send book-access request
-        // -----------------------------------------------
-
-        await sendBook(
-            paymentId,
-            payment
+        alert(
+            "✅ Payment approved.\n\n" +
+            "Now the 📚 Send Book button will appear."
         );
 
 
     } catch (error) {
 
         console.error(
-            "Approve/send error:",
+            "Approve payment error:",
             error
         );
 
 
         alert(
-            "❌ Payment was not processed correctly."
+            "❌ Payment could not be approved."
         );
 
     }
@@ -451,10 +491,15 @@ async function sendBook(
 
     const question =
         "Send access for:\n\n" +
+
         bookName +
+
         "\n\n" +
+
         "to WhatsApp:\n" +
+
         whatsapp +
+
         "?";
 
 
@@ -466,10 +511,7 @@ async function sendBook(
     try {
 
         // =================================================
-        // IMPORTANT:
-        // The actual secure book-access URL will be added
-        // when book-access.html + Firebase Storage Rules
-        // are installed.
+        // CREATE BOOK ACCESS LINK
         // =================================================
 
         const accessUrl =
@@ -478,9 +520,9 @@ async function sendBook(
             encodeURIComponent(paymentId);
 
 
-        // -----------------------------------------------
-        // Mark book as sent
-        // -----------------------------------------------
+        // =================================================
+        // MARK BOOK AS SENT
+        // =================================================
 
         await update(
             ref(
@@ -505,24 +547,31 @@ async function sendBook(
         );
 
 
-        // -----------------------------------------------
-        // WhatsApp message
-        // -----------------------------------------------
+        // =================================================
+        // WHATSAPP MESSAGE
+        // =================================================
 
         const message =
             "Assalam-o-Alaikum " +
             (payment.studentName || "") +
+
             ",\n\n" +
 
             "Your payment for:\n" +
+
             "📚 " +
             bookName +
+
             "\n\n" +
 
-            "has been verified successfully. ✅\n\n" +
+            "has been verified successfully. ✅" +
+
+            "\n\n" +
 
             "You can access your book here:\n" +
+
             accessUrl +
+
             "\n\n" +
 
             "Thank you for learning with Deedar Quambrani.";
@@ -549,7 +598,7 @@ async function sendBook(
 
 
         alert(
-            "✅ Payment approved and book access sent."
+            "✅ Book access sent on WhatsApp."
         );
 
 
@@ -579,11 +628,7 @@ async function updatePayment(
     newStatus
 ) {
 
-    const question =
-        "Reject this payment?";
-
-
-    if (!confirm(question)) {
+    if (!confirm("Reject this payment?")) {
         return;
     }
 
