@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Login | Learn with Deedar Quambrani</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        Learn with Deedar Quambrani
+    </div>
+
+</header>
+
+
+<section class="books">
+
+    <div class="book-card">
+
+        <h2>🔐 Admin Login</h2>
+
+        <p>
+            Payment verification dashboard
+        </p>
+
+
+        <form id="loginForm">
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Admin Email"
+                required
+            >
+
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Password"
+                required
+            >
+
+
+            <button
+                type="submit"
+                class="btn">
+
+                🔐 Login
+
+            </button>
+
+        </form>
+
+
+        <p
+            id="loginMessage"
+            style="font-weight:bold; margin-top:20px;">
+        </p>
+
+    </div>
+
+</section>
+
+
+
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+
+import {
+    getAuth,
+    signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyAJ6dcJZxYTnH3R3XWr3qdk6EDpfa7jphU",
+
+    authDomain:
+        "learn-with-deedar.firebaseapp.com",
+
+    databaseURL:
+        "https://learn-with-deedar-default-rtdb.firebaseio.com",
+
+    projectId:
+        "learn-with-deedar",
+
+    storageBucket:
+        "learn-with-deedar.firebasestorage.app",
+
+    messagingSenderId:
+        "93219928041",
+
+    appId:
+        "1:93219928041:web:5f3ea3d3b1055f760b3d78"
+
+};
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+
+const auth =
+    getAuth(app);
+
+
+const loginForm =
+    document.getElementById("loginForm");
+
+
+const loginMessage =
+    document.getElementById("loginMessage");
+
+
+loginForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        const email =
+            document.getElementById("email")
+                .value
+                .trim();
+
+
+        const password =
+            document.getElementById("password")
+                .value;
+
+
+        loginMessage.textContent =
+            "🔄 Signing in...";
+
+
+        try {
+
+            await signInWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+
+            loginMessage.style.color =
+                "green";
+
+
+            loginMessage.textContent =
+                "✅ Login successful. Opening payment dashboard...";
+
+
+            window.location.href =
+                "admin-payments.html";
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Login error:",
+                error
+            );
+
+
+            loginMessage.style.color =
+                "red";
+
+
+            loginMessage.textContent =
+                "❌ Invalid email or password.";
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html> 
