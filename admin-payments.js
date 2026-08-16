@@ -1,4 +1,125 @@
 
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    onValue,
+    update
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyAJ6dcJZxYTnH3R3XWr3qdk6EDpfa7jphU",
+
+    authDomain: "learn-with-deedar.firebaseapp.com",
+
+    databaseURL:
+        "https://learn-with-deedar-default-rtdb.firebaseio.com",
+
+    projectId: "learn-with-deedar",
+
+    storageBucket:
+        "learn-with-deedar.firebasestorage.app",
+
+    messagingSenderId: "93219928041",
+
+    appId:
+        "1:93219928041:web:5f3ea3d3b1055f760b3d78"
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const database = getDatabase(app);
+
+const paymentList =
+    document.getElementById("paymentList");
+
+const paymentsRef =
+    ref(database, "paymentRequests");
+
+
+// =====================================================
+// LOAD ALL PAYMENT REQUESTS
+// =====================================================
+
+onValue(paymentsRef, (snapshot) => {
+
+    paymentList.innerHTML = "";
+
+    if (!snapshot.exists()) {
+
+        paymentList.innerHTML =
+            "<p>No payment requests found.</p>";
+
+        return;
+    }
+
+
+    const payments = snapshot.val();
+
+
+    Object.entries(payments)
+        .reverse()
+        .forEach(([id, payment]) => {
+
+            const card =
+                document.createElement("div");
+
+
+            card.style.border =
+                "1px solid #ddd";
+
+            card.style.padding =
+                "15px";
+
+            card.style.marginBottom =
+                "15px";
+
+            card.style.borderRadius =
+                "10px";
+
+            card.style.background =
+                "#fff";
+
+
+            // =================================================
+            // BOOK
+            // =================================================
+
+            const title =
+                document.createElement("h3");
+
+            title.textContent =
+                "📚 " +
+                (payment.bookName || "Book");
+
+
+            // =================================================
+            // STUDENT
+            // =================================================
+
+            const student =
+                document.createElement("p");
+
+            student.innerHTML =
+                "<strong>Student:</strong> ";
+
+            student.append(
+                document.createTextNode(
+                    payment.studentName || ""
+                )
+            );
+
+
+            // =================================================
+            // WHATSAPP
+            // =================================================
+
             const whatsapp =
                 document.createElement("p");
 
@@ -11,6 +132,10 @@
                 )
             );
 
+
+            // =================================================
+            // AMOUNT
+            // =================================================
 
             const amount =
                 document.createElement("p");
@@ -25,6 +150,27 @@
             );
 
 
+            // =================================================
+            // BOOK ID
+            // =================================================
+
+            const bookId =
+                document.createElement("p");
+
+            bookId.innerHTML =
+                "<strong>Book ID:</strong> ";
+
+            bookId.append(
+                document.createTextNode(
+                    payment.bookId || "Not specified"
+                )
+            );
+
+
+            // =================================================
+            // TRANSACTION ID
+            // =================================================
+
             const transaction =
                 document.createElement("p");
 
@@ -37,6 +183,10 @@
                 )
             );
 
+
+            // =================================================
+            // STATUS
+            // =================================================
 
             const status =
                 document.createElement("p");
@@ -56,10 +206,15 @@
                 student,
                 whatsapp,
                 amount,
+                bookId,
                 transaction,
                 status
             );
 
+
+            // =================================================
+            // PENDING PAYMENT
+            // =================================================
 
             if (payment.status === "pending") {
 
@@ -69,7 +224,7 @@
                 approveButton.className = "btn";
 
                 approveButton.textContent =
-                    "✅ Approve";
+                    "✅ Approve + Send Book";
 
                 approveButton.style.marginRight =
                     "10px";
@@ -77,9 +232,9 @@
 
                 approveButton.addEventListener(
                     "click",
-                    () => updatePayment(
+                    () => approveAndSendBook(
                         id,
-                        "approved"
+                        payment
                     )
                 );
 
@@ -106,7 +261,65 @@
                     approveButton,
                     rejectButton
                 );
+            }
 
+
+            // =================================================
+            // APPROVED BUT NOT SENT
+            // =================================================
+
+            else if (
+                payment.status === "approved" &&
+                payment.bookSent !== true
+            ) {
+
+                const sendButton =
+                    document.createElement("button");
+
+                sendButton.className = "btn";
+
+                sendButton.textContent =
+                    "📚 Send Book";
+
+                sendButton.style.marginRight =
+                    "10px";
+
+
+                sendButton.addEventListener(
+                    "click",
+                    () => sendBook(
+                        id,
+                        payment
+                    )
+                );
+
+
+                card.appendChild(sendButton);
+            }
+
+
+            // =================================================
+            // ALREADY SENT
+            // =================================================
+
+            else if (
+                payment.status === "approved" &&
+                payment.bookSent === true
+            ) {
+
+                const sentMessage =
+                    document.createElement("p");
+
+                sentMessage.style.color =
+                    "green";
+
+                sentMessage.style.fontWeight =
+                    "bold";
+
+                sentMessage.textContent =
+                    "📚 Book access has been sent.";
+
+                card.appendChild(sentMessage);
             }
 
 
@@ -117,17 +330,257 @@
 });
 
 
+// =====================================================
+// APPROVE + SEND BOOK
+// =====================================================
+
+async function approveAndSendBook(
+    paymentId,
+    payment
+) {
+
+    const question =
+        "Have you checked and received this payment?\n\n" +
+        "Book: " +
+        (payment.bookName || "Book") +
+        "\n" +
+        "Amount: Rs. " +
+        (payment.amount || "") +
+        "\n" +
+        "JazzCash TID: " +
+        (payment.transactionId || "") +
+        "\n\n" +
+        "Approve and send the book?";
+
+
+    if (!confirm(question)) {
+        return;
+    }
+
+
+    try {
+
+        // -----------------------------------------------
+        // First mark payment as approved
+        // -----------------------------------------------
+
+        await update(
+            ref(
+                database,
+                "paymentRequests/" +
+                paymentId
+            ),
+            {
+
+                status: "approved",
+
+                verifiedAt:
+                    new Date().toISOString(),
+
+                bookSent: false
+
+            }
+        );
+
+
+        // -----------------------------------------------
+        // Send book-access request
+        // -----------------------------------------------
+
+        await sendBook(
+            paymentId,
+            payment
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Approve/send error:",
+            error
+        );
+
+
+        alert(
+            "❌ Payment was not processed correctly."
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// SEND BOOK
+// =====================================================
+
+async function sendBook(
+    paymentId,
+    payment
+) {
+
+    const bookName =
+        payment.bookName || "your book";
+
+    const whatsapp =
+        payment.whatsapp || "";
+
+    const bookId =
+        payment.bookId || "";
+
+
+    if (!bookId) {
+
+        alert(
+            "❌ This payment has no Book ID."
+        );
+
+        return;
+    }
+
+
+    if (!whatsapp) {
+
+        alert(
+            "❌ This payment has no WhatsApp number."
+        );
+
+        return;
+    }
+
+
+    const question =
+        "Send access for:\n\n" +
+        bookName +
+        "\n\n" +
+        "to WhatsApp:\n" +
+        whatsapp +
+        "?";
+
+
+    if (!confirm(question)) {
+        return;
+    }
+
+
+    try {
+
+        // =================================================
+        // IMPORTANT:
+        // The actual secure book-access URL will be added
+        // when book-access.html + Firebase Storage Rules
+        // are installed.
+        // =================================================
+
+        const accessUrl =
+            window.location.origin +
+            "/book-access.html?payment=" +
+            encodeURIComponent(paymentId);
+
+
+        // -----------------------------------------------
+        // Mark book as sent
+        // -----------------------------------------------
+
+        await update(
+            ref(
+                database,
+                "paymentRequests/" +
+                paymentId
+            ),
+            {
+
+                status: "approved",
+
+                bookSent: true,
+
+                bookId: bookId,
+
+                bookName: bookName,
+
+                sentAt:
+                    new Date().toISOString()
+
+            }
+        );
+
+
+        // -----------------------------------------------
+        // WhatsApp message
+        // -----------------------------------------------
+
+        const message =
+            "Assalam-o-Alaikum " +
+            (payment.studentName || "") +
+            ",\n\n" +
+
+            "Your payment for:\n" +
+            "📚 " +
+            bookName +
+            "\n\n" +
+
+            "has been verified successfully. ✅\n\n" +
+
+            "You can access your book here:\n" +
+            accessUrl +
+            "\n\n" +
+
+            "Thank you for learning with Deedar Quambrani.";
+
+
+        const whatsappNumber =
+            whatsapp.replace(
+                /\D/g,
+                ""
+            );
+
+
+        const whatsappUrl =
+            "https://wa.me/" +
+            whatsappNumber +
+            "?text=" +
+            encodeURIComponent(message);
+
+
+        window.open(
+            whatsappUrl,
+            "_blank"
+        );
+
+
+        alert(
+            "✅ Payment approved and book access sent."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Send book error:",
+            error
+        );
+
+
+        alert(
+            "❌ Could not send book access."
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// REJECT PAYMENT
+// =====================================================
+
 async function updatePayment(
     paymentId,
     newStatus
 ) {
 
     const question =
-        newStatus === "approved"
-
-            ? "Approve this payment?"
-
-            : "Reject this payment?";
+        "Reject this payment?";
 
 
     if (!confirm(question)) {
@@ -155,11 +608,7 @@ async function updatePayment(
 
 
         alert(
-            newStatus === "approved"
-
-                ? "✅ Payment approved."
-
-                : "❌ Payment rejected."
+            "❌ Payment rejected."
         );
 
 
