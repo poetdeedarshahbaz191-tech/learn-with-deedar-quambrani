@@ -1,3 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Book Access | Learn with Deedar Quambrani</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #message {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .book {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .book h2 {
+            margin-bottom: 10px;
+        }
+
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            font-size: 16px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 25px;
+            text-decoration: none;
+            color: #333;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+    <h1>📚 Book Access</h1>
+
+    <div id="message">
+        🔄 Verifying your payment...
+    </div>
+
     <div id="bookArea"></div>
 
 
@@ -24,13 +122,11 @@ import {
     initializeApp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
-
 import {
     getDatabase,
     ref,
     get
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-
 
 
 const firebaseConfig = {
@@ -59,14 +155,12 @@ const firebaseConfig = {
 };
 
 
-
 const app =
     initializeApp(firebaseConfig);
 
 
 const database =
     getDatabase(app);
-
 
 
 /* =====================================================
@@ -76,19 +170,12 @@ const database =
 const message =
     document.getElementById("message");
 
-
 const bookArea =
     document.getElementById("bookArea");
 
 
-
 /* =====================================================
    BOOK DATABASE
-=====================================================
-
-   bookId from payment.js
-   ↓
-   actual PDF filename
 ===================================================== */
 
 const books = {
@@ -139,9 +226,8 @@ const books = {
 };
 
 
-
 /* =====================================================
-   GET PAYMENT ID FROM URL
+   GET PAYMENT ID
 ===================================================== */
 
 const params =
@@ -152,7 +238,6 @@ const params =
 
 const paymentId =
     params.get("payment");
-
 
 
 /* =====================================================
@@ -170,7 +255,6 @@ if (!paymentId) {
     checkPayment();
 
 }
-
 
 
 /* =====================================================
@@ -193,7 +277,6 @@ async function checkPayment() {
             await get(paymentRef);
 
 
-
         /* ---------------------------------------------
            PAYMENT NOT FOUND
         --------------------------------------------- */
@@ -209,14 +292,12 @@ async function checkPayment() {
         }
 
 
-
         const payment =
             snapshot.val();
 
 
-
         /* ---------------------------------------------
-           PAYMENT MUST BE APPROVED
+           PAYMENT APPROVED
         --------------------------------------------- */
 
         if (
@@ -232,9 +313,8 @@ async function checkPayment() {
         }
 
 
-
         /* ---------------------------------------------
-           BOOK MUST BE SENT
+           BOOK SENT
         --------------------------------------------- */
 
         if (
@@ -250,9 +330,8 @@ async function checkPayment() {
         }
 
 
-
         /* ---------------------------------------------
-           CHECK BOOK ID
+           BOOK ID
         --------------------------------------------- */
 
         if (!payment.bookId) {
@@ -266,10 +345,8 @@ async function checkPayment() {
         }
 
 
-
         const book =
             books[payment.bookId];
-
 
 
         /* ---------------------------------------------
@@ -287,30 +364,12 @@ async function checkPayment() {
         }
 
 
-
-        /* ---------------------------------------------
-           CHECK PDF FILE
-        --------------------------------------------- */
-
-        if (!book.file) {
-
-            showError(
-                "❌ Book file is not configured."
-            );
-
-            return;
-
-        }
-
-
-
         /* ---------------------------------------------
            SUCCESS
         --------------------------------------------- */
 
         message.className =
             "success";
-
 
         message.textContent =
             "✅ Payment verified successfully!";
@@ -338,7 +397,6 @@ async function checkPayment() {
 }
 
 
-
 /* =====================================================
    SHOW BOOK
 ===================================================== */
@@ -351,7 +409,6 @@ function showBook(book) {
     const box =
         document.createElement("div");
 
-
     box.className =
         "book";
 
@@ -359,28 +416,23 @@ function showBook(book) {
     const title =
         document.createElement("h2");
 
-
     title.textContent =
-        "📖 " + book.name;
-
+        "📖 " +
+        book.name;
 
 
     const description =
         document.createElement("p");
 
-
     description.textContent =
         "Your payment has been verified. Your purchased book is ready.";
 
-    
 
     const button =
         document.createElement("button");
 
-
     button.textContent =
         "📚 Open My Book";
-
 
 
     button.addEventListener(
@@ -396,7 +448,6 @@ function showBook(book) {
     );
 
 
-
     box.append(
         title,
         description,
@@ -404,14 +455,15 @@ function showBook(book) {
     );
 
 
-    bookArea.appendChild(box);
+    bookArea.appendChild(
+        box
+    );
 
 }
 
 
-
 /* =====================================================
-   ERROR MESSAGE
+   ERROR
 ===================================================== */
 
 function showError(text) {
@@ -419,10 +471,8 @@ function showError(text) {
     message.className =
         "error";
 
-
     message.textContent =
         text;
-
 
     bookArea.innerHTML = "";
 
@@ -434,4 +484,3 @@ function showError(text) {
 </body>
 
 </html>
-
