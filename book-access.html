@@ -1,1 +1,504 @@
 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Book Access | Learn with Deedar Quambrani</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #message {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .book {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .book h2 {
+            margin-bottom: 10px;
+        }
+
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            font-size: 16px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 25px;
+            text-decoration: none;
+            color: #333;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+    <h1>📚 Book Access</h1>
+
+    <div id="message">
+        🔄 Verifying your payment...
+    </div>
+
+    <div id="bookArea"></div>
+
+    <a
+        href="books.html"
+        class="back">
+
+        ← Back to Books
+
+    </a>
+
+</div>
+
+
+<script type="module">
+
+
+/* =====================================================
+   FIREBASE
+===================================================== */
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    get
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyAJ6dcJZxYTnH3R3XWr3qdk6EDpfa7jphU",
+
+    authDomain:
+        "learn-with-deedar.firebaseapp.com",
+
+    databaseURL:
+        "https://learn-with-deedar-default-rtdb.firebaseio.com",
+
+    projectId:
+        "learn-with-deedar",
+
+    storageBucket:
+        "learn-with-deedar.firebasestorage.app",
+
+    messagingSenderId:
+        "93219928041",
+
+    appId:
+        "1:93219928041:web:5f3ea3d3b1055f760b3d78"
+
+};
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+
+const database =
+    getDatabase(app);
+
+
+/* =====================================================
+   HTML ELEMENTS
+===================================================== */
+
+const message =
+    document.getElementById("message");
+
+const bookArea =
+    document.getElementById("bookArea");
+
+
+/* =====================================================
+   BOOK DATABASE
+===================================================== */
+
+const books = {
+
+    book1: {
+
+        name:
+            "Simple Sentences — Book 1",
+
+        file:
+            "Simple_Sentences_Book_Category_1_BE_and_Category_2_HAVE_Deedar_Quambrani-1.pdf"
+
+    },
+
+
+    book2: {
+
+        name:
+            "English with Deedar — Book 2",
+
+        file:
+            "English_with_Deedar_Book_2_Dummy_Pronouns_Corrected.pdf"
+
+    },
+
+
+    book3: {
+
+        name:
+            "English Patterns — Book 3",
+
+        file:
+            "learn_with_deedar_patterns_10_examples.pdf"
+
+    },
+
+
+    book4: {
+
+        name:
+            "Baat — Different English Words",
+
+        file:
+            "Baat_Different_English_Words_Colorful_Book_GAALH_FIXED-1.pdf"
+
+    },
+
+
+    book5: {
+
+        name:
+            "English Learning Book — Book 5",
+
+        file:
+            "books/Book_5.pdf"
+
+    },
+
+
+    book6: {
+
+        name:
+            "Synonyms — Book 6",
+
+        file:
+            "books/Book_6.pdf"
+
+    },
+
+
+    book7: {
+
+        name:
+            "Antonyms — Book 7",
+
+        file:
+            "books/Book_7.pdf"
+
+    },
+
+
+    book8: {
+
+        name:
+            "All Uses of Can — Book 8",
+
+        file:
+            "books/Book_8.pdf"
+
+    }
+
+};
+
+
+/* =====================================================
+   GET PAYMENT ID
+===================================================== */
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const paymentId =
+    params.get("payment");
+
+
+/* =====================================================
+   CHECK PAYMENT ID
+===================================================== */
+
+if (!paymentId) {
+
+    showError(
+        "❌ Invalid book access link."
+    );
+
+} else {
+
+    checkPayment();
+
+}
+
+
+/* =====================================================
+   CHECK PAYMENT
+===================================================== */
+
+async function checkPayment() {
+
+    try {
+
+        const paymentRef =
+            ref(
+                database,
+                "paymentRequests/" +
+                paymentId
+            );
+
+
+        const snapshot =
+            await get(paymentRef);
+
+
+        if (!snapshot.exists()) {
+
+            showError(
+                "❌ Payment request not found."
+            );
+
+            return;
+
+        }
+
+
+        const payment =
+            snapshot.val();
+
+
+        if (
+            payment.status !== "approved"
+        ) {
+
+            showError(
+                "❌ Your payment has not been approved yet."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            payment.bookSent !== true
+        ) {
+
+            showError(
+                "⏳ Your payment is approved, but book access has not been sent yet."
+            );
+
+            return;
+
+        }
+
+
+        if (!payment.bookId) {
+
+            showError(
+                "❌ Book ID is missing."
+            );
+
+            return;
+
+        }
+
+
+        const book =
+            books[payment.bookId];
+
+
+        if (!book) {
+
+            showError(
+                "❌ This book could not be identified."
+            );
+
+            return;
+
+        }
+
+
+        message.className =
+            "success";
+
+        message.textContent =
+            "✅ Payment verified successfully!";
+
+
+        showBook(book);
+
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "Book access error:",
+            error
+        );
+
+
+        showError(
+            "❌ Unable to verify your payment. Please try again."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   SHOW BOOK
+===================================================== */
+
+function showBook(book) {
+
+    bookArea.innerHTML = "";
+
+
+    const box =
+        document.createElement("div");
+
+    box.className =
+        "book";
+
+
+    const title =
+        document.createElement("h2");
+
+    title.textContent =
+        "📖 " +
+        book.name;
+
+
+    const description =
+        document.createElement("p");
+
+    description.textContent =
+        "Your payment has been verified. Your purchased book is ready.";
+
+
+    const button =
+        document.createElement("button");
+
+    button.textContent =
+        "📚 Open My Book";
+
+
+    button.addEventListener(
+        "click",
+        function() {
+
+            window.open(
+                book.file,
+                "_blank"
+            );
+
+        }
+    );
+
+
+    box.append(
+        title,
+        description,
+        button
+    );
+
+
+    bookArea.appendChild(
+        box
+    );
+
+}
+
+
+/* =====================================================
+   ERROR
+===================================================== */
+
+function showError(text) {
+
+    message.className =
+        "error";
+
+    message.textContent =
+        text;
+
+    bookArea.innerHTML = "";
+
+}
+
+</script>
+
+
+</body>
+
+</html>
