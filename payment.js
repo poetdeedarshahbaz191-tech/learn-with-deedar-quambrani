@@ -1,4 +1,5 @@
 
+Complete payment.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
 import {
@@ -24,6 +25,10 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 
+/* =====================================================
+   BOOKS
+===================================================== */
+
 const books = {
 
     book1: {
@@ -44,36 +49,78 @@ const books = {
     book4: {
         name: "Baat — Different English Words for ڳالھ",
         price: 200
+    },
+
+    book5: {
+        name: "100 Most Difficult Irregular Verbs — Book 5",
+        price: 200
+    },
+
+    book6: {
+        name: "100 Useful English Synonyms — Book 6",
+        price: 200
+    },
+
+    book7: {
+        name: "100 Useful English Antonyms — Book 7",
+        price: 200
+    },
+
+    book8: {
+        name: "All Uses of Can — Book 8",
+        price: 200
     }
 
 };
 
 
-const params = new URLSearchParams(window.location.search);
+/* =====================================================
+   SELECTED BOOK
+===================================================== */
 
-const selectedBook = params.get("book");
+const params =
+    new URLSearchParams(window.location.search);
 
-const book = books[selectedBook];
+const selectedBook =
+    params.get("book");
+
+const book =
+    books[selectedBook];
 
 
-const bookName = document.getElementById("bookName");
+/* =====================================================
+   HTML ELEMENTS
+===================================================== */
 
-const paymentForm = document.getElementById("paymentForm");
+const bookName =
+    document.getElementById("bookName");
 
-const statusMessage = document.getElementById("statusMessage");
+const paymentForm =
+    document.getElementById("paymentForm");
 
-const submitButton = document.getElementById("submitPayment");
+const statusMessage =
+    document.getElementById("statusMessage");
 
+const submitButton =
+    document.getElementById("submitPayment");
+
+
+/* =====================================================
+   CHECK SELECTED BOOK
+===================================================== */
 
 if (book) {
 
-    bookName.textContent = book.name;
+    bookName.textContent =
+        book.name;
 
 } else {
 
-    bookName.textContent = "No book selected";
+    bookName.textContent =
+        "No book selected";
 
-    paymentForm.style.display = "none";
+    paymentForm.style.display =
+        "none";
 
     statusMessage.textContent =
         "Please select a book from the Books section.";
@@ -81,135 +128,198 @@ if (book) {
 }
 
 
-paymentForm.addEventListener("submit", async function(event) {
+/* =====================================================
+   PAYMENT FORM
+===================================================== */
 
-    event.preventDefault();
+paymentForm.addEventListener(
+    "submit",
+    async function(event) {
 
-
-    if (!book) {
-
-        alert("Please select a book from the Books section.");
-
-        return;
-
-    }
+        event.preventDefault();
 
 
-    const name =
-        document.getElementById("studentName")
-            .value
-            .trim();
+        if (!book) {
+
+            alert(
+                "Please select a book from the Books section."
+            );
+
+            return;
+
+        }
 
 
-    const whatsapp =
-        document.getElementById("studentWhatsapp")
-            .value
-            .trim();
+        const name =
+            document
+                .getElementById("studentName")
+                .value
+                .trim();
 
 
-    const transactionId =
-        document.getElementById("transactionId")
-            .value
-            .trim();
+        const whatsapp =
+            document
+                .getElementById("studentWhatsapp")
+                .value
+                .trim();
 
 
-    if (!name || !whatsapp || !transactionId) {
-
-        alert("Please complete all fields.");
-
-        return;
-
-    }
+        const transactionId =
+            document
+                .getElementById("transactionId")
+                .value
+                .trim();
 
 
-    submitButton.disabled = true;
+        if (
+            !name ||
+            !whatsapp ||
+            !transactionId
+        ) {
 
-    submitButton.textContent = "Submitting...";
+            alert(
+                "Please complete all fields."
+            );
 
-    statusMessage.textContent =
-        "Saving your payment request...";
+            return;
+
+        }
 
 
-    try {
+        submitButton.disabled =
+            true;
 
-        const paymentRef =
-            push(
-                ref(database, "paymentRequests")
+        submitButton.textContent =
+            "Submitting...";
+
+        statusMessage.textContent =
+            "Saving your payment request...";
+
+
+        try {
+
+            /* =========================================
+               SAVE PAYMENT REQUEST
+            ========================================= */
+
+            const paymentRef =
+                push(
+                    ref(
+                        database,
+                        "paymentRequests"
+                    )
+                );
+
+
+            await set(
+                paymentRef,
+                {
+
+                    studentName:
+                        name,
+
+                    whatsapp:
+                        whatsapp,
+
+                    bookId:
+                        selectedBook,
+
+                    bookName:
+                        book.name,
+
+                    amount:
+                        book.price,
+
+                    transactionId:
+                        transactionId,
+
+                    status:
+                        "pending",
+
+                    createdAt:
+                        new Date().toISOString()
+
+                }
             );
 
 
-        await set(paymentRef, {
+            /* =========================================
+               WHATSAPP MESSAGE
+            ========================================= */
 
-            studentName: name,
+            const message =
+                "Payment Verification Request\n\n" +
 
-            whatsapp: whatsapp,
+                "Student Name: " +
+                name +
+                "\n" +
 
-            bookId: selectedBook,
+                "WhatsApp: " +
+                whatsapp +
+                "\n" +
 
-            bookName: book.name,
+                "Book: " +
+                book.name +
+                "\n" +
 
-            amount: book.price,
+                "Amount: Rs. " +
+                book.price +
+                "\n" +
 
-            transactionId: transactionId,
-
-            status: "pending",
-
-            createdAt: new Date().toISOString()
-
-        });
-
-
-        const message =
-            "Payment Verification Request\n\n" +
-
-            "Student Name: " + name + "\n" +
-
-            "WhatsApp: " + whatsapp + "\n" +
-
-            "Book: " + book.name + "\n" +
-
-            "Amount: Rs. " + book.price + "\n" +
-
-            "JazzCash TID: " + transactionId;
+                "JazzCash TID: " +
+                transactionId;
 
 
-        const whatsappNumber = "923073223367";
+            const whatsappNumber =
+                "923073223367";
 
 
-        const whatsappURL =
-            "https://wa.me/" +
-            whatsappNumber +
-            "?text=" +
-            encodeURIComponent(message);
+            const whatsappURL =
+                "https://wa.me/" +
+                whatsappNumber +
+                "?text=" +
+                encodeURIComponent(
+                    message
+                );
 
 
-        statusMessage.textContent =
-            "✅ Request saved. Opening WhatsApp...";
+            /* =========================================
+               SUCCESS
+            ========================================= */
+
+            statusMessage.textContent =
+                "✅ Request saved. Opening WhatsApp...";
 
 
-        paymentForm.reset();
+            paymentForm.reset();
 
 
-        window.open(whatsappURL, "_blank");
+            window.open(
+                whatsappURL,
+                "_blank"
+            );
 
 
-    } catch (error) {
+        } catch (error) {
 
-        console.error(
-            "Payment submission error:",
-            error
-        );
-
-
-        statusMessage.textContent =
-            "❌ Your request could not be submitted. Please try again.";
+            console.error(
+                "Payment submission error:",
+                error
+            );
 
 
-        submitButton.disabled = false;
+            statusMessage.textContent =
+                "❌ Your request could not be submitted. Please try again.";
 
-        submitButton.textContent =
-            "✅ Submit Payment for Verification";
+
+            submitButton.disabled =
+                false;
+
+
+            submitButton.textContent =
+                "✅ Submit Payment for Verification";
+
+        }
 
     }
-
-});
+);
